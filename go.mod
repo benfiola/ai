@@ -8,11 +8,11 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/mattn/go-sqlite3 v1.14.30
 	github.com/samber/slog-chi v1.15.0
-	github.com/sqlc-dev/sqlc v1.29.0
 	github.com/urfave/cli/v3 v3.3.8
 )
 
 require (
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

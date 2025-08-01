@@ -9,6 +9,7 @@ DST ?= $(PWD)/.dst
 
 BUN_VERSION := 1.2.19
 GORELEASER_VERSION := 2.11.1
+SQLC_VERSION := 1.29.0
 
 .PHONY: default
 default: list-targets
@@ -24,18 +25,24 @@ clean:
 
 .PHONY: create-migration
 create-migration:
-	# create table
-	go run github.com/golang-migrate/migrate/v4/cmd/migrate create -ext sql -dir $(PWD)/pkg/db/migrations -seq $(TABLE)
+	# create migration with NAME build setting
+	go run github.com/golang-migrate/migrate/v4/cmd/migrate create -ext sql -dir $(PWD)/pkg/db/migrations -seq $(NAME)
 
 .PHONY: generate-db-files
 generate-db-files:
+	# delete generated db files
+	rm -rf pkg/db/sqlc
 	# generate db files
-	go run github.com/sqlc-dev/sqlc/cmd/sqlc 
+	sqlc generate --file $(PWD)/.sqlc.yaml
 
 .PHONY: install-tools
 install-tools:
 
-BUN_URL := https://github.com/oven-sh/bun/releases/download/bun-v$(BUN_VERSION)/bun-$(OS)-$(ARCH).zip
+BUN_ARCH := $(ARCH)
+ifeq ($(BUN_ARCH),x86_64)
+	BUN_ARCH := x64
+endif
+BUN_URL := https://github.com/oven-sh/bun/releases/download/bun-v$(BUN_VERSION)/bun-$(OS)-$(BUN_ARCH).zip
 $(eval $(call create-install-tool-from-zip,bun,$(BUN_URL),1))
 
 GORELEASER_ARCH := $(ARCH)
@@ -44,6 +51,13 @@ ifeq ($(GORELEASER_ARCH),aarch64)
 endif
 GORELEASER_URL := https://github.com/goreleaser/goreleaser/releases/download/v$(GORELEASER_VERSION)/goreleaser_$(OS)_$(GORELEASER_ARCH).tar.gz
 $(eval $(call create-install-tool-from-tar-gz,goreleaser,$(GORELEASER_URL),0))
+
+SQLC_ARCH := $(ARCH)
+ifeq ($(SQLC_ARCH),x86_64)
+	SQLC_ARCH := amd64
+endif
+SQLC_URL := https://github.com/sqlc-dev/sqlc/releases/download/v$(SQLC_VERSION)/sqlc_$(SQLC_VERSION)_$(OS)_$(SQLC_ARCH).tar.gz
+$(eval $(call create-install-tool-from-tar-gz,sqlc,$(SQLC_URL),0))
 
 $(BIN):
 	# make bin folder

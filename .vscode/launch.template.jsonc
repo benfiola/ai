@@ -5,12 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "migrate",
+      "name": "ai",
       "type": "go",
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/cmd/ai",
-      "args": ["migrate", "head", "--database-url", "sqlite:///test.sql3"],
+      "args": [],
       "cwd": "${workspaceFolder}"
     }
   ]

@@ -6,15 +6,16 @@ import (
 	"log/slog"
 	"net/url"
 
+	"github.com/benfiola/ai/pkg/db/sqlc"
 	_ "github.com/jackc/pgx/v5"
 	_ "github.com/mattn/go-sqlite3"
-	_ "github.com/sqlc-dev/sqlc"
 )
 
 type DB struct {
-	Logger *slog.Logger
-	Pool   *sql.DB
-	URL    *url.URL
+	Logger  *slog.Logger
+	Pool    *sql.DB
+	Queries *sqlc.Queries
+	URL     *url.URL
 }
 
 type Opts struct {
@@ -32,7 +33,8 @@ func New(opts Opts) (*DB, error) {
 	var err error
 	switch opts.URL.Scheme {
 	case "sqlite":
-		dsn := fmt.Sprintf("file:%s?%s", opts.URL.Path, opts.URL.RawQuery)
+		path := opts.URL.Path[1:]
+		dsn := fmt.Sprintf("file:%s?%s", path, opts.URL.RawQuery)
 		pool, err = sql.Open("sqlite3", dsn)
 	case "postgres":
 		pool, err = sql.Open("postgres", opts.URL.String())
@@ -43,10 +45,13 @@ func New(opts Opts) (*DB, error) {
 		return nil, err
 	}
 
+	queries := sqlc.New(pool)
+
 	db := DB{
-		Logger: logger,
-		Pool:   pool,
-		URL:    opts.URL,
+		Logger:  logger,
+		Pool:    pool,
+		URL:     opts.URL,
+		Queries: queries,
 	}
 
 	return &db, nil

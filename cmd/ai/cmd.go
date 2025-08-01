@@ -49,7 +49,8 @@ func main() {
 					case "base":
 						version = db.VersionBase
 					default:
-						versionInt, err := strconv.Atoi(versionStr)
+						var versionInt int
+						versionInt, err = strconv.Atoi(versionStr)
 						if err != nil {
 							break
 						}

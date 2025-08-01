@@ -1,0 +1,4 @@
+.bin
+.vscode/**/*
+!.vscode/launch.template.jsonc
+*.sql3

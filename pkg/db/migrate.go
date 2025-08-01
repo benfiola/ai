@@ -11,7 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-//go:embed migrations/*
+//go:embed migrations
 var migrationsFs embed.FS
 
 type Version int
@@ -20,7 +20,7 @@ var VersionBase = Version(0)
 var VersionHead = Version(-1)
 
 func (db *DB) Migrate(version Version) error {
-	source, err := iofs.New(migrationsFs, "")
+	source, err := iofs.New(migrationsFs, "migrations")
 	if err != nil {
 		return err
 	}
