@@ -1,3 +1,4 @@
+import { Card, CardBody } from "@heroui/react";
 import { useEffect } from "react";
 
 function App() {
@@ -8,9 +9,11 @@ function App() {
     });
   });
   return (
-    <>
-      <h1>AI</h1>
-    </>
+    <Card>
+      <CardBody>
+        <p>Make beautiful websites regardless of your design experience.</p>
+      </CardBody>
+    </Card>
   );
 }
 

@@ -2,6 +2,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "bradlc.vscode-tailwindcss",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "golang.go",
@@ -19,6 +20,9 @@
         ],
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "eslint.workingDirectories": ["./ui"],
+        "files.associations": {
+          "*.css": "tailwindcss"
+        },
         "typescript.tsdk": "/workspaces/ai/ui/node_modules/typescript/lib"
       }
     }
