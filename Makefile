@@ -55,6 +55,8 @@ $(eval $(call create-install-tool-from-tar-gz,goreleaser,$(GORELEASER_URL),0))
 SQLC_ARCH := $(ARCH)
 ifeq ($(SQLC_ARCH),x86_64)
 	SQLC_ARCH := amd64
+else ifeq ($(SQLC_ARCH),aarch64)
+	SQLC_ARCH := arm64
 endif
 SQLC_URL := https://github.com/sqlc-dev/sqlc/releases/download/v$(SQLC_VERSION)/sqlc_$(SQLC_VERSION)_$(OS)_$(SQLC_ARCH).tar.gz
 $(eval $(call create-install-tool-from-tar-gz,sqlc,$(SQLC_URL),0))
