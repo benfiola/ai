@@ -5,7 +5,7 @@
 package sqlc
 
 type User struct {
-	ID       int64
-	Email    string
-	Password string
+	ID    int64
+	Email string
+	Hash  []byte
 }

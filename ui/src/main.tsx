@@ -1,14 +1,23 @@
 import { HeroUIProvider } from "@heroui/react";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
+import { routeTree } from "./routeTree.gen";
 
 import "./main.css";
+
+const router = createRouter({ routeTree });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HeroUIProvider>
-      <App />
+      <RouterProvider router={router} />
     </HeroUIProvider>
   </StrictMode>
 );

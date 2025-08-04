@@ -8,13 +8,15 @@ import (
 )
 
 type Core struct {
-	DB     *db.DB
-	Logger *slog.Logger
+	DB        *db.DB
+	Logger    *slog.Logger
+	SecretKey string
 }
 
 type Opts struct {
-	DB     *db.DB
-	Logger *slog.Logger
+	DB        *db.DB
+	Logger    *slog.Logger
+	SecretKey string
 }
 
 func New(opts Opts) (*Core, error) {
@@ -29,13 +31,10 @@ func New(opts Opts) (*Core, error) {
 	}
 
 	core := Core{
-		DB:     db,
-		Logger: logger,
+		DB:        db,
+		Logger:    logger,
+		SecretKey: "secret-key",
 	}
 
 	return &core, nil
-}
-
-func (c *Core) Health() error {
-	return nil
 }

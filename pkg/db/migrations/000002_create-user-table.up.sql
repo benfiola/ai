@@ -1,6 +1,6 @@
 CREATE TABLE "user" (
   id BIGINT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL,
+  hash BLOB NOT NULL,
   PRIMARY KEY(id)
 );

@@ -10,22 +10,51 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO "user" (
-  email, password
-) VALUES (
-  $1, $2
-)
-RETURNING id, email, password
+INSERT INTO "user" (email, hash) 
+VALUES ($1, $2)
+RETURNING id
 `
 
 type CreateUserParams struct {
-	Email    string
-	Password string
+	Email string
+	Hash  []byte
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Password)
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Hash)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, email, hash
+FROM "user" u
+WHERE u.id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserById, id)
 	var i User
-	err := row.Scan(&i.ID, &i.Email, &i.Password)
+	err := row.Scan(&i.ID, &i.Email, &i.Hash)
 	return i, err
+}
+
+const getUserIdByCredentials = `-- name: GetUserIdByCredentials :one
+SELECT u.id
+FROM "user" u
+WHERE u.email = $1
+AND u.hash = $2
+`
+
+type GetUserIdByCredentialsParams struct {
+	Email string
+	Hash  []byte
+}
+
+func (q *Queries) GetUserIdByCredentials(ctx context.Context, arg GetUserIdByCredentialsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getUserIdByCredentials, arg.Email, arg.Hash)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
