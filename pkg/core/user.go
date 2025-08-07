@@ -2,11 +2,15 @@ package core
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/benfiola/ai/pkg/db/sqlc"
+	"github.com/benfiola/ai/pkg/database/sqlc"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type User struct {
+	ID    int
+	Email string
+}
 
 type CreateUserOpts struct {
 	Email    string
@@ -14,7 +18,7 @@ type CreateUserOpts struct {
 }
 
 func (c *Core) CreateUser(ctx context.Context, opts CreateUserOpts) (int, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(opts.Password), 0)
+	hash, err := bcrypt.GenerateFromPassword([]byte(opts.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
 	}
@@ -28,28 +32,4 @@ func (c *Core) CreateUser(ctx context.Context, opts CreateUserOpts) (int, error)
 	}
 
 	return int(id), nil
-}
-
-type User struct {
-	ID    int
-	Email string
-}
-
-func (c *Core) GetUser(ctx context.Context, id int) (*User, error) {
-	authContext := c.GetAuth(ctx)
-	if !authContext.Admin || authContext.User != id {
-		return nil, fmt.Errorf("unauthorized")
-	}
-
-	dbUser, err := c.DB.Queries.GetUserById(ctx, int64(id))
-	if err != nil {
-		return nil, err
-	}
-
-	user := User{
-		ID:    int(dbUser.ID),
-		Email: dbUser.Email,
-	}
-
-	return &user, nil
 }

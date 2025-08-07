@@ -2,91 +2,86 @@ package core
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"strconv"
 	"time"
 
-	"github.com/benfiola/ai/pkg/db/sqlc"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthenticateOpts struct {
-	Email    string
-	Password string
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (c *Core) Authenticate(ctx context.Context, opts AuthenticateOpts) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(opts.Password), 0)
+	user, err := c.DB.Queries.GetUserByEmail(ctx, opts.Email)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrInvalidCredentials{}
+		}
 		return "", err
 	}
 
-	id, err := c.DB.Queries.GetUserIdByCredentials(ctx, sqlc.GetUserIdByCredentialsParams{
-		Email: opts.Email,
-		Hash:  hash,
+	err = bcrypt.CompareHashAndPassword(user.Hash, []byte(opts.Password))
+	if err != nil {
+		return "", ErrInvalidCredentials{}
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"sub": strconv.Itoa(int(user.ID)),
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	})
-	if err != nil {
-		return "", err
-	}
-	if id == 0 {
-		return "", fmt.Errorf("invalid credentials")
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"sub": strconv.Itoa(int(id)),
-			"exp": time.Now().Add(time.Hour * 24).Unix(),
-		},
-	)
-
-	tokenString, err := token.SignedString(c.SecretKey)
+	signedToken, err := token.SignedString([]byte(c.SecretKey))
 	if err != nil {
 		return "", err
 	}
 
-	return tokenString, nil
+	return signedToken, nil
 }
 
-type authCtxKey struct{}
+type ctxAuthInfo struct{}
 
-type AuthContext struct {
-	Admin bool
-	User  int
+type AuthInfo struct {
+	User int
 }
 
-func (c *Core) WithAuth(ctx context.Context, tokenString string) context.Context {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) { return c.SecretKey, nil })
+func (c *Core) EmbedAuthInfo(ctx context.Context, signedToken string) (context.Context, error) {
+	token, err := jwt.Parse(signedToken, func(t *jwt.Token) (any, error) { return []byte(c.SecretKey), nil })
 	if err != nil {
-		return ctx
-	}
-
-	if !token.Valid {
-		return ctx
+		return ctx, ErrInvalidCredentials{}
 	}
 
 	idString, err := token.Claims.GetSubject()
 	if err != nil {
-		return ctx
+		return ctx, err
 	}
-
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return ctx
+		return ctx, err
 	}
 
-	authContext := AuthContext{
-		Admin: false,
-		User:  id,
+	user, err := c.DB.Queries.GetUserById(ctx, int32(id))
+	if err != nil {
+		return ctx, err
 	}
 
-	return context.WithValue(ctx, authCtxKey{}, authContext)
+	authInfo := AuthInfo{
+		User: int(user.ID),
+	}
+
+	newCtx := context.WithValue(ctx, ctxAuthInfo{}, authInfo)
+
+	return newCtx, nil
 }
 
-func (c *Core) GetAuth(ctx context.Context) AuthContext {
-	authContext, ok := ctx.Value(authCtxKey{}).(AuthContext)
-	if !ok {
-		return AuthContext{}
+func (c *Core) getAuthInfo(ctx context.Context) AuthInfo {
+	authInfo := ctx.Value(ctxAuthInfo{})
+	if authInfo == nil {
+		authInfo = AuthInfo{}
 	}
-	return authContext
+	return authInfo.(AuthInfo)
 }
+
+

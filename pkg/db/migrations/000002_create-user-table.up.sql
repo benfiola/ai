@@ -1,6 +1,0 @@
-CREATE TABLE "user" (
-  id BIGINT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  hash BLOB NOT NULL,
-  PRIMARY KEY(id)
-);

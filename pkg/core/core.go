@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/benfiola/ai/pkg/db"
+	"github.com/benfiola/ai/pkg/database"
 )
 
 type Core struct {
-	DB        *db.DB
+	DB        *database.DB
 	Logger    *slog.Logger
 	SecretKey string
 }
 
 type Opts struct {
-	DB        *db.DB
+	DB        *database.DB
 	Logger    *slog.Logger
 	SecretKey string
 }
@@ -30,10 +30,18 @@ func New(opts Opts) (*Core, error) {
 		logger = slog.New(slog.DiscardHandler)
 	}
 
+	secretKey := opts.SecretKey
+	if secretKey == "" {
+		secretKey = "secret-key"
+	}
+	if secretKey == "" {
+		return nil, fmt.Errorf("secret key is nil")
+	}
+
 	core := Core{
 		DB:        db,
 		Logger:    logger,
-		SecretKey: "secret-key",
+		SecretKey: secretKey,
 	}
 
 	return &core, nil

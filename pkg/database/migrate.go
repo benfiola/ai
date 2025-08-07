@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"embed"
@@ -7,7 +7,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
@@ -27,8 +26,6 @@ func (db *DB) Migrate(version Version) error {
 
 	var driver database.Driver
 	switch db.URL.Scheme {
-	case "sqlite":
-		driver, err = sqlite3.WithInstance(db.Pool, &sqlite3.Config{})
 	case "postgres":
 		driver, err = pgx.WithInstance(db.Pool, &pgx.Config{})
 	default:
