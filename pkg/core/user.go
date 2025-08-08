@@ -8,8 +8,8 @@ import (
 )
 
 type User struct {
-	ID    int
-	Email string
+	ID    int    `json:"id"`
+	Email string `json:"email"`
 }
 
 type CreateUserOpts struct {
